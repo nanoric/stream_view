@@ -11,7 +11,6 @@ So, we have to create two pipes, one for calculating turnover in the first 3 sec
 another for getting lowest and highest price for the first 1.5 seconds.
 */
 #include <chrono>
-#include <gtest/gtest.h>
 #include <stream_view/functional.h>
 #include <stream_view/stream_view.h>
 
@@ -43,21 +42,25 @@ auto get_turnover = [](const Tick &tick) {
     return tick.avg_price * tick.trades;
 };
 
+SV_FORCE_INLINE
 auto xget_turnover(const Tick &tick)
 {
     return tick.avg_price * tick.trades;
 }
 
+SV_FORCE_INLINE
 auto get_low_high(const Tick &tick)
 {
     return std::make_tuple(tick.low, tick.high);
 }
 
+SV_FORCE_INLINE
 auto get_low(const Tick &tick)
 {
     return tick.low;
 }
 
+SV_FORCE_INLINE
 auto get_high(const Tick &tick)
 {
     return tick.high;
@@ -67,7 +70,7 @@ auto get_fake(int)
 {
 }
 
-struct Example: public testing::Test
+struct Example
 {
     Window<Tick> w1{1s};
     Sum<double> sum1;
@@ -106,8 +109,9 @@ struct Example: public testing::Test
     }
 };
 
-TEST_F(Example, example)
+int main()
 {
+    Example e;
     constexpr auto size = 20;
     Tick ticks[size];
     for(int i = 0; i < size; ++i)
@@ -120,31 +124,17 @@ TEST_F(Example, example)
         tick.trades = 2;
     }
 
-    auto p = pipe();
-    for(int i = 0; i <= 9; ++i)
-        p << ticks[i];
-
-    EXPECT_FALSE(w1.empty());
-    EXPECT_EQ(w1.back().avg_price, 9);
-    EXPECT_EQ(w1.front().avg_price, 8);
-    EXPECT_EQ(w2.back().avg_price, 7);
-    EXPECT_EQ(w2.front().avg_price, 6);
-    EXPECT_EQ(w3.back().avg_price, 5);
-    EXPECT_EQ(w3.front().avg_price, 4);
-
-    EXPECT_EQ(sum1.sum() / 2, 9 + 8);
-    EXPECT_EQ(sum2.sum() / 2, 7 + 6);
-    EXPECT_EQ(sum3.sum() / 2, 5 + 4);
-
-    EXPECT_EQ(low.low_value(), 7);
-    EXPECT_EQ(low.high_value(), 8);
-    EXPECT_EQ(high.low_value(), 9);
-    EXPECT_EQ(high.high_value(), 10);
-    low.clear();
-    high.clear();
-    EXPECT_EQ(sumx1.sum() / 2, 17);
-    EXPECT_EQ(sumx2.sum() / 2, 17);
-
-    for(int i = size / 2; i < size; ++i)
-        pipe() << ticks[i];
-}
+    {
+        for(int i = 0; i <= 9; ++i)
+            e.pipe() << ticks[i];
+    }
+    {
+        for(int i = 0; i <= 9; ++i)
+            e.pipe() << ticks[i];
+    }
+    {
+        auto p = e.pipe();
+        for(int i = 0; i <= 9; ++i)
+            p << ticks[i];
+    }
+};

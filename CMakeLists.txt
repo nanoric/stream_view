@@ -15,6 +15,9 @@ include_directories(include/)
 add_executable(${project_name}
     tests/stream_view.cpp
     )
+add_executable(generated_code
+    tests/generated_code.cpp
+    )
 target_link_libraries(${project_name}
     PUBLIC
     GTest::gtest

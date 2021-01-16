@@ -5,6 +5,14 @@
 
 namespace stream_view
 {
+#define INTERFACE(name)                                    \
+    template <class Value, class Added, class Removing>    \
+    SV_FORCE_INLINE void name(Value &&value,               \
+                              Added &&on_added,            \
+                              Removing &&on_removing)
+
+#define REFERENCE_VALUE static_cast<const Value &>(value)
+#define FORWARD_VALUE std::forward<Value>(value)
 
 #define FORWARD(target, method, on_added, on_removing)     \
     [&, this]<typename T0>(T0 &&value) {                   \
@@ -14,25 +22,56 @@ namespace stream_view
                             on_removing);                  \
     }
 
-#define FORWARD_TO_RIGHT_ADD()                             \
-    FORWARD(right, add, on_right_added, on_right_removing)
-#define FORWARD_TO_RIGHT_REMOVE()                          \
-    FORWARD(right,                                         \
-            remove,                                        \
-            on_right_added,                                \
-            on_right_removing)
+#define FORWARD_TO_RIGHT_ADD                               \
+    LambdaRightAdd<Right, Added, Removing>                 \
+    {                                                      \
+        .right = right, .on_added = on_added,              \
+        .on_removing = on_removing,                        \
+    }
+#define FORWARD_TO_RIGHT_REMOVE                            \
+    LambdaRightRemove<Right, Added, Removing>              \
+    {                                                      \
+        .right = right, .on_added = on_added,              \
+        .on_removing = on_removing,                        \
+    }
 
-#define INTERFACE(name)                                    \
-    template <class Value,                                 \
-              class AddFunc,                               \
-              class RemoveFunc>                            \
-    SV_FORCE_INLINE void name(                             \
-        Value &&value,                                     \
-        AddFunc &&on_right_added,                          \
-        RemoveFunc &&on_right_removing)
+// C++'s lambda is not inlined in most of the case.
+// so I choose a hand-written lambda
+// to increase the probability of being inlined.
+// maybe [[gnu::always_inline]] is a good choice
+// but there is no such an attribute for MSVC
+template <class Right, class Added, class Removing>
+struct LambdaRightAdd
+{
+    std::remove_cvref_t<Right> &right;
+    std::remove_cvref_t<Added> &on_added;
+    std::remove_cvref_t<Removing> &on_removing;
+    template <class Value>
+    SV_FORCE_INLINE void operator()(Value &&value)
+    {
+        stream_view::add(right,
+                         FORWARD_VALUE,
+                         on_added,
+                         on_removing);
+    }
+};
 
-#define REFERENCE_VALUE static_cast<const Value &>(value)
-#define FORWARD_VALUE std::forward<Value>(value)
+template <class Right, class Added, class Removing>
+struct LambdaRightRemove
+{
+    std::remove_cvref_t<Right> &right;
+    std::remove_cvref_t<Added> &on_added;
+    std::remove_cvref_t<Removing> &on_removing;
+    template <class Value>
+    SV_FORCE_INLINE void operator()(Value &&value)
+    {
+        stream_view::remove(right,
+                            FORWARD_VALUE,
+                            on_added,
+                            on_removing);
+    }
+};
+
 
 /*! distribute input to all its children,
  *  discards all outputs 
@@ -64,17 +103,13 @@ struct PipeLinked
 {
     Left left;
     Right right;
-
-#define OUTPUT_TO_RIGHT                                    \
-    dummy_on_added, FORWARD_TO_RIGHT_ADD()
-
     INTERFACE(add)
     {
         stream_view::add(left,
                          FORWARD_VALUE,
-                         OUTPUT_TO_RIGHT);
+                         dummy_on_added,
+                         FORWARD_TO_RIGHT_ADD);
     }
-#undef OUTPUT_TO_RIGHT
 };
 
 /*! set right as left's children, or said sync right with left.
@@ -89,23 +124,20 @@ struct SyncLinked
 {
     Left left;
     Right right;
-
-#define SYNC_WITH_RIGHT                                    \
-    FORWARD_TO_RIGHT_ADD(), FORWARD_TO_RIGHT_REMOVE()
-
     INTERFACE(add)
     {
         stream_view::add(left,
                          FORWARD_VALUE,
-                         SYNC_WITH_RIGHT);
+                         FORWARD_TO_RIGHT_ADD,
+                         FORWARD_TO_RIGHT_REMOVE);
     }
     INTERFACE(remove)
     {
         stream_view::remove(left,
                             FORWARD_VALUE,
-                            SYNC_WITH_RIGHT);
+                            FORWARD_TO_RIGHT_ADD,
+                            FORWARD_TO_RIGHT_REMOVE);
     }
-#undef SYNC_WITH_RIGHT
 };
 
 /*!
@@ -116,17 +148,11 @@ struct Transform
     : AccumulatorInterface<Transform<_Transformer>>
 {
     _Transformer transformer;
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void add(Value &&value,
-                             AddFunc &&on_added,
-                             RemoveFunc &&on_removing)
+    INTERFACE(add)
     {
         on_added(transformer(FORWARD_VALUE));
     }
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void remove(Value &&value,
-                                AddFunc &&on_added,
-                                RemoveFunc &&on_removing)
+    INTERFACE(remove)
     {
         on_removing(transformer(FORWARD_VALUE));
     }
@@ -136,10 +162,7 @@ struct Transform
  */
 struct Echo: AccumulatorInterface<Echo>
 {
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void add(Value &&value,
-                             AddFunc &&on_added,
-                             RemoveFunc &&on_removing)
+    INTERFACE(add)
     {
         on_added(REFERENCE_VALUE);
         on_removing(FORWARD_VALUE);
@@ -150,17 +173,11 @@ struct Echo: AccumulatorInterface<Echo>
  */
 struct Sync: AccumulatorInterface<Sync>
 {
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void add(Value &&value,
-                             AddFunc &&on_added,
-                             RemoveFunc &&on_removing)
+    INTERFACE(add)
     {
         on_added(FORWARD_VALUE);
     }
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void remove(Value &&value,
-                                AddFunc &&on_added,
-                                RemoveFunc &&on_removing)
+    INTERFACE(remove)
     {
         on_removing(FORWARD_VALUE);
     }
@@ -172,19 +189,13 @@ template <class Right>
 struct Sub: AccumulatorInterface<Sub<Right>>
 {
     Right right;
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void add(Value &&value,
-                             AddFunc &&on_added,
-                             RemoveFunc &&on_removing)
+    INTERFACE(add)
     {
         // input->input
         stream_view::add(right, REFERENCE_VALUE);
         on_added(FORWARD_VALUE);
     }
-    template <class Value, class AddFunc, class RemoveFunc>
-    SV_FORCE_INLINE void remove(Value &&value,
-                                AddFunc &&on_added,
-                                RemoveFunc &&on_removing)
+    INTERFACE(remove)
     {
         stream_view::remove(right, REFERENCE_VALUE);
         on_removing(FORWARD_VALUE);
@@ -206,6 +217,15 @@ SV_FORCE_INLINE constexpr auto parallel(L &&l, R &&r)
         .left = std::forward<L>(l),
         .right = std::forward<R>(r),
     };
+}
+template <class L, class R, class... Args>
+SV_FORCE_INLINE constexpr auto parallel(L &&l,
+                                        R &&r,
+                                        Args &&... args)
+{
+    return parallel(
+        parallel(std::forward<L>(l), std::forward<R>(r)),
+        std::forward<Args>(args)...);
 }
 
 inline Echo echo, pipe;
