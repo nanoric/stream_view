@@ -124,10 +124,9 @@ int main()
         tick.trades = 2;
     }
 
-    {
-        for(int i = 0; i <= 9; ++i)
-            e.pipe() << ticks[i];
-    }
+    // these two loops should generates the same code.
+    // it is not easy to make a automatic test for this.
+    // So this test is verified manually.
     {
         for(int i = 0; i <= 9; ++i)
             e.pipe() << ticks[i];
@@ -137,4 +136,5 @@ int main()
         for(int i = 0; i <= 9; ++i)
             p << ticks[i];
     }
+    // for MSVC, it does generate the same code.
 };
