@@ -1,0 +1,141 @@
+BasedOnStyle: Microsoft
+AccessModifierOffset: -4
+
+TabWidth: 4
+IndentWidth: 4
+UseTab: Never
+
+ColumnLimit: 60
+
+AlignAfterOpenBracket: Align
+
+AlignConsecutiveDeclarations: false
+AlignConsecutiveAssignments: false
+AlignTrailingComments: true
+
+AllowAllArgumentsOnNextLine: false
+AllowAllConstructorInitializersOnNextLine: false
+AllowAllParametersOfDeclarationOnNextLine: false
+AllowShortBlocksOnASingleLine: Never
+AllowShortCaseLabelsOnASingleLine: true
+
+AllowShortFunctionsOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLambdasOnASingleLine: None
+AllowShortLoopsOnASingleLine: false
+
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+
+AlwaysBreakBeforeMultilineStrings: true
+
+AlwaysBreakTemplateDeclarations: Yes
+
+BinPackArguments: false
+BinPackParameters: false
+
+BreakAfterJavaFieldAnnotations: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterCaseLabel: false
+  AfterClass: true
+  AfterControlStatement : Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeTernaryOperators: true
+BreakConstructorInitializers: BeforeComma
+
+IndentGotoLabels: false
+
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: 'asio.hpp|tcpserver.h|rpc_adapter.h' # asio: error with WinSock.h
+    SortPriority: 0
+
+  # boost, tbb
+  - Regex: '^<boost/.*'
+    SortPriority: 11
+  - Regex: '^<tbb/.*'
+    SortPriority: 12
+  - Regex: '^<lang/.*'  # language or STL enhance
+    SortPriority: 13
+
+  # including aaqt, this should be included before Qt's library
+  - Regex: '^<aaqt/.*'
+    SortPriority: 30
+  - Regex: '^<adapter/.*'
+    SortPriority: 31
+  - Regex: '^<t0/.*'
+    SortPriority: 32
+
+  - Regex: '^<utils/.*'
+    SortPriority: 20
+
+  # including Qt
+  - Regex: '^<Q.*'
+    SortPriority: 40
+  - Regex: '^(.?./)*ui/.*'
+    SortPriority: 41
+
+  # 3rd party
+  - Regex: '^<.*/.*'
+    SortPriority: 10
+
+  # aaqt relative includes
+  - Regex: '^"(concepts|.*base|basic.*|type(s)?).h(pp)?"$'
+    SortPriority: 50
+
+  - Regex: '^".*.hpp"$'
+    SortPriority: 62
+
+  - Regex: \.\./  # relative path, should avoid using this.
+    SortPriority: 999
+
+  - Regex: '^<[a-z_]+>' # stl
+    SortPriority: 10
+  - Regex: '^".*' # anything else
+    SortPriority: 100
+
+MaxEmptyLinesToKeep: 2
+
+NamespaceIndentation: None
+
+PointerAlignment: Right
+
+SortIncludes: true
+SortUsingDeclarations: true
+
+SpaceAfterCStyleCast: false
+SpaceAfterLogicalNot: false
+SpaceAfterTemplateKeyword: true
+SpaceBeforeAssignmentOperators: true
+SpaceBeforeCpp11BracedList: false
+SpaceBeforeCtorInitializerColon: false
+SpaceBeforeInheritanceColon: false
+SpaceBeforeParens: Never
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceInEmptyBlock: true
+SpaceInEmptyParentheses: false
+SpacesBeforeTrailingComments: 0
+SpacesInAngles: false
+SpacesInCStyleCastParentheses: false
+SpacesInContainerLiterals: false
+SpacesInParentheses: false
+SpacesInSquareBrackets: false
+
+Standard: c++20
+IndentPPDirectives: AfterHash
+
+ReflowComments: false

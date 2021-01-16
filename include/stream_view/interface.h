@@ -1,5 +1,4 @@
 #pragma once
-#include <tuple>
 #include "concepts.h"
 #include "utility.h"
 
@@ -12,8 +11,9 @@ template <class Class1, class Class2>
 struct PipeLinked;
 template <class Class1, class Class2>
 struct SyncLinked;
-template <class Class1, class Class2>
-struct TransformLinked;
+template <class _Transformer>
+struct Transform;
+
 
 template <class Derived>
 struct AccumulatorInterface
@@ -70,27 +70,4 @@ struct AccumulatorInterface
     }
 };
 
-
-#define DEFINE_OPERATOR_FOR_ACCUMULATOR_INTERFACE(Ret, op) \
-    template <class Left, class Right>                     \
-    requires std::derived_from<                            \
-        std::decay_t<Left>,                                \
-        AccumulatorInterface<std::decay_t<Left>>>          \
-        &&std::derived_from<                               \
-            std::decay_t<Right>,                           \
-            AccumulatorInterface<std::decay_t<Right>>>     \
-            SV_FORCE_INLINE constexpr Ret<Left, Right>     \
-            operator op(Left &&lhs, Right &&rhs)           \
-    {                                                      \
-        return {                                           \
-            .left = std::forward<Left>(lhs),               \
-            .right = std::forward<Right>(rhs),             \
-        };                                                 \
-    }
-#define COMMA ,
-DEFINE_OPERATOR_FOR_ACCUMULATOR_INTERFACE(ParallelLinked,
-                                          COMMA)
-DEFINE_OPERATOR_FOR_ACCUMULATOR_INTERFACE(PipeLinked, |)
-DEFINE_OPERATOR_FOR_ACCUMULATOR_INTERFACE(SyncLinked, &)
-#undef COMMA
 }// namespace stream_view

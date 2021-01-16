@@ -3,8 +3,10 @@
 
 namespace stream_view
 {
-template <class T>
-constexpr auto _dummy(const std::remove_cvref_t<T> &val){};
+#define dummy_on_added                                     \
+    ([](const auto &) {                                    \
+    })
+#define dummy_on_removed dummy_on_added
 
 
 template <class T>
@@ -15,15 +17,15 @@ template <class T>
 concept _has_add = requires(T v)
 {
     v.add(std::declval<typename T::X>(),
-          &_dummy<typename T::X>,
-          &_dummy<typename T::X>);
+          dummy_on_added,
+          dummy_on_removed);
 };
 
 template <class T>
 concept _has_remove = requires(T v)
 {
     v.remove(std::declval<typename T::X>(),
-             &_dummy<typename T::X>,
-             &_dummy<typename T::X>);
+             dummy_on_added,
+             dummy_on_removed);
 };
 }// namespace stream_view

@@ -8,11 +8,11 @@ namespace stream_view
 
 
 template <class Acc, class Val>
-SV_FORCE_INLINE auto &&add(Acc &acc, Val &&value)
+SV_FORCE_INLINE Acc &add(Acc &acc, Val &&value)
 {
     acc.add(std::forward<Val>(value),
-            &_dummy<Val>,
-            &_dummy<Val>);
+            dummy_on_added,
+            dummy_on_removed);
     return acc;
 }
 
@@ -20,7 +20,7 @@ template <class Acc,
           class Val,
           class AddFunc,
           class RemoveFunc>
-SV_FORCE_INLINE auto &&add(Acc &acc,
+SV_FORCE_INLINE Acc &add(Acc &acc,
                            Val &&value,
                            AddFunc &&on_right_added,
                            RemoveFunc &&on_right_removed)
@@ -34,11 +34,11 @@ SV_FORCE_INLINE auto &&add(Acc &acc,
 
 
 template <class Acc, class Val>
-SV_FORCE_INLINE auto &&remove(Acc &acc, Val &&value)
+SV_FORCE_INLINE Acc &remove(Acc &acc, Val &&value)
 {
     acc.remove(std::forward<Val>(value),
-               &_dummy<Val>,
-               &_dummy<Val>);
+               dummy_on_added,
+               dummy_on_removed);
     return acc;
 }
 
@@ -46,7 +46,7 @@ template <class Acc,
           class Val,
           class AddFunc,
           class RemoveFunc>
-SV_FORCE_INLINE auto &&remove(Acc &acc,
+SV_FORCE_INLINE Acc &remove(Acc &acc,
                               Val &&value,
                               AddFunc &&on_right_added,
                               RemoveFunc &&on_right_removed)
