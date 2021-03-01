@@ -8,6 +8,9 @@ project(stream_view)
 
 find_package(GTest CONFIG REQUIRED)
 
+# generate stream_view-config.cmake
+include(cmake/stream_view_generator.cmake)
+
 ###############################
 #only tests are need to build as project.
 ###############################

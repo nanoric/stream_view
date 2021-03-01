@@ -44,11 +44,12 @@ template <
 
     // Comparator used to determine if element is out of range.
     class _Comparator = std::less<>>
-struct Window: AccumulatorInterface<Window<_Value,
-                                           _Container,
-                                           _Operator,
-                                           _Comparator>>,
-               private _Container
+struct DurationWindow
+    : AccumulatorInterface<DurationWindow<_Value,
+                                          _Container,
+                                          _Operator,
+                                          _Comparator>>,
+      private _Container
 {
 public:
     using Operator = _Operator;
@@ -69,8 +70,9 @@ private:
 public:
     template <class Allocator =
                   typename Container::allocator_type>
-    constexpr Window(const Duration &window_size,
-                     Allocator &&allocator = Allocator{})
+    constexpr DurationWindow(
+        const Duration &window_size,
+        Allocator &&allocator = Allocator{})
         : Container(std::forward<Allocator>(allocator))
         , _window_size(window_size)
     {

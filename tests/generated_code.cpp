@@ -72,14 +72,14 @@ auto get_fake(int)
 
 struct Example
 {
-    Window<Tick> w1{1s};
+    DurationWindow<Tick> w1{1s};
     Sum<double> sum1;
-    Window<Tick> w2{1s};
+    DurationWindow<Tick> w2{1s};
     Sum<double> sum2;
-    Window<Tick> w3{1s};
+    DurationWindow<Tick> w3{1s};
     Sum<double> sum3;
 
-    Window<Tick> wx1{1s};
+    DurationWindow<Tick> wx1{1s};
     Ordered<double> low;
     Ordered<double> high;
     Sum<double> sumx1;

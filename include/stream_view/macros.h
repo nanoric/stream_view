@@ -51,3 +51,11 @@
 #        define SV_NODISCARD
 #    endif
 #endif
+
+#ifndef SV_NO_UNIQUE_ADDRESS
+#    if __has_cpp_attribute(no_unique_address)
+#        define SV_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#    else
+#        define SV_NO_UNIQUE_ADDRESS
+#    endif
+#endif

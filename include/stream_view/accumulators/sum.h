@@ -19,7 +19,6 @@ struct Sum
 
     Sum() = default;
     Sum(Sum&rhs) = delete;
-    Sum(Sum&&rhs) = delete;
 
 private:
     SumType _sum{};

@@ -213,7 +213,7 @@ SV_FORCE_INLINE constexpr auto sub(Acc &&acc)
 template <class L, class R>
 SV_FORCE_INLINE constexpr auto parallel(L &&l, R &&r)
 {
-    return ParallelLinked{
+    return ParallelLinked<L, R>{
         .left = std::forward<L>(l),
         .right = std::forward<R>(r),
     };

@@ -1,4 +1,4 @@
 #pragma once
-#include "accumulators/window.h"
+#include "accumulators/duration_window.h"
 #include "accumulators/sum.h"
 #include "accumulators/ordered.h"
